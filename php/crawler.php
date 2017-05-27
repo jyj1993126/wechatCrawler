@@ -26,11 +26,6 @@ $http->on(
 		$redis->connect( $config['redis']['host'] , $config['redis']['port'] );
 		$redis->setOption( Redis::OPT_PREFIX , $config['redis']['prefix'] );
 		
-		$deadTime = strtotime( '-2 hours' );
-		$dropWxuins = $redis->zRangeByScore( 'cookie_update' , 0 , $deadTime );
-		$redis->zRemRangeByScore( 'cookie_update' , 0 , $deadTime );
-		$redis->hDel( 'cookie' , ...$dropWxuins );
-		
 		$availableCookies = $redis->hGetAll( 'cookie' );
 		$wxuins = $redis->zRevRange( 'cookie_update' , 0 , -1 , true );
 		
@@ -86,6 +81,12 @@ $http->on(
 			$config['interval'] ,
 			function ( $id ) use ( $config , $serv , $redis )
 			{
+				
+				$deadTime = strtotime( '-2 hours' );
+				$dropWxuins = $redis->zRangeByScore( 'cookie_update' , 0 , $deadTime );
+				$redis->zRemRangeByScore( 'cookie_update' , 0 , $deadTime );
+				$redis->hDel( 'cookie' , ...$dropWxuins );
+				
 				foreach( $config['BIZS'] as $name => $biz )
 				{
 					$config['doCrawler']( $serv , $redis , $name , $biz );
