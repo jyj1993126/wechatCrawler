@@ -1,0 +1,15 @@
+{
+  "name": "wechatproxy",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "anyproxy": "^4.0.0-beta13",
+    "redis": "^2.7.1",
+    "set-cookie-parser": "^2.0.0"
+  }
+}
