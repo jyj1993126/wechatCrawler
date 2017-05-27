@@ -28,6 +28,7 @@ return array_merge(
 			}
 		} ,
 		'task_worker_num' => 5 ,
+		'interval' => 5000,
 	] ,
 	json_decode( file_get_contents( '../config.json' ) , true )
 );

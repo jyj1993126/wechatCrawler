@@ -83,7 +83,7 @@ $http->on(
 		$redis->setOption( Redis::OPT_PREFIX , $config['redis']['prefix'] );
 		
 		$serv->tick(
-			5000 ,
+			$config['interval'] ,
 			function ( $id ) use ( $config , $serv , $redis )
 			{
 				foreach( $config['BIZS'] as $name => $biz )

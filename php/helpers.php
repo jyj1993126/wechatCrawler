@@ -72,25 +72,35 @@ function fetchList( $curl ,$name,  $biz , $wxuin , $lastMsgId , $callback )
 		$curl->get( listLink( $biz, $fromMsgId ) );
 		$rtn = json_decode( $curl->response , true );
 		$continue = (bool)$rtn['can_msg_continue'];
-		if( !$result && $rtn['ret'] == 0 )
+		$hasFollow = true;
+		
+		if( $success = $rtn['ret'] == 0 )
 		{
-			$result = true;
-			if( $rtn['msg_count'] == 10 && !$continue )
+			if( !$result && $success )
 			{
-				echo "账号 : {$wxuin} 可能没有关注公众号 : {$name} \n";
+				$result = true;
+				if( $rtn['msg_count'] == 10 && !$continue )
+				{
+					$hasFollow = false;
+				}
 			}
+			foreach( json_decode( $rtn['general_msg_list'] , true )['list'] as $msg )
+			{
+				$fromMsgId = $msg['comm_msg_info']['id'];
+				if( $fromMsgId == $lastMsgId )
+				{
+					break 2;
+				}
+				$list[] = $msg;
+			}
+			$callback( $biz, $list );
+			randSleep();
 		}
-		foreach( json_decode( $rtn['general_msg_list'] , true )['list'] as $msg )
+		
+		if( !$hasFollow )
 		{
-			$fromMsgId = $msg['comm_msg_info']['id'];
-			if( $fromMsgId == $lastMsgId )
-			{
-				break 2;
-			}
-			$list[] = $msg;
+			echo "账号 : {$wxuin} 可能没有关注公众号 : {$name} \n";
 		}
-		$callback( $biz, $list );
-		randSleep();
 	}
 	return $result;
 }
