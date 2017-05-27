@@ -79,7 +79,7 @@ $http->on(
 		}
 		
 		$redis = new Redis();
-		$redis->pconnect( '127.0.0.1' );
+		$redis->pconnect( $config['redis']['host'] , $config['redis']['port'] );
 		$redis->setOption( Redis::OPT_PREFIX , $config['redis']['prefix'] );
 		
 		$serv->tick(
