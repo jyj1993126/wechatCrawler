@@ -6,27 +6,25 @@
 
 require 'vendor/autoload.php';
 
-$BIZS = [
-	'chuanyizhushouapp' => 'MzIyNTAwNjUyMg=='
-];
+$config = include 'config.php';
 
 $http = new swoole_http_server( "127.0.0.1" );
 
 $http->set(
 	array(
-		'task_worker_num' => 5 , // 设置启动2个task进程
+		'task_worker_num' => $config['task_worker_num'] , // 设置启动2个task进程
 		'worker_num' => 1 ,
 	)
 );
 
 $http->on(
 	'task' ,
-	function ( $serv , $task_id , $from_id , $data )
+	function ( $serv , $task_id , $from_id , $data ) use ( $config )
 	{
-		list( $name, $biz ) = $data;
+		list( $name , $biz ) = $data;
 		$redis = new Redis();
-		$redis->connect( '127.0.0.1' );
-		$redis->setOption( Redis::OPT_PREFIX , 'wechat_proxy_' );
+		$redis->connect( $config['redis']['host'] , $config['redis']['port'] );
+		$redis->setOption( Redis::OPT_PREFIX , $config['redis']['prefix'] );
 		
 		$deadTime = strtotime( '-2 hours' );
 		$dropWxuins = $redis->zRangeByScore( 'cookie_update' , 0 , $deadTime );
@@ -40,8 +38,7 @@ $http->on(
 		
 		uksort( $availableCookies , cmpDec( $wxuins ) );
 		
-		//todo get last msgId
-		$lastMsgId = 0;
+		$lastMsgId = $config['getLastMsgId']( $biz );
 		
 		$curl = new Curl\Curl();
 		$curl->setHeader( 'Host' , 'mp.weixin.qq.com' );
@@ -51,7 +48,6 @@ $http->on(
 		);
 		$curl->setReferer( pageLink( $biz ) );
 		//		$curl->setOpt( CURLOPT_PROXY , 'http://127.0.0.1:8888' );
-	
 		
 		foreach( $availableCookies as $wxuin => $cookieStr )
 		{
@@ -60,12 +56,7 @@ $http->on(
 				urldecode( http_build_query( json_decode( $cookieStr , true ) , '' , '; ' ) )
 			);
 			
-			$result = fetchList( $curl , $name , $biz , $wxuin , $lastMsgId ,
-				function ( $list )
-				{
-					print_r($list);
-				}
-			);
+			$result = fetchList( $curl , $name , $biz , $wxuin , $lastMsgId , $config['listHandler'] );
 			
 			if( $result )
 			{
@@ -80,7 +71,7 @@ $http->on(
 
 $http->on(
 	'workerStart' ,
-	function ( $serv ) use ( $BIZS )
+	function ( $serv ) use ( $config )
 	{
 		if( $serv->taskworker )
 		{
@@ -93,15 +84,11 @@ $http->on(
 		
 		$serv->tick(
 			5000 ,
-			function ( $id ) use ( $serv , $BIZS , $redis )
+			function ( $id ) use ( $config , $serv , $redis )
 			{
-				foreach( $BIZS as $name => $biz )
+				foreach( $config['BIZS'] as $name => $biz )
 				{
-					if( $redis->zScore( 'bizs' , $name ) < strtotime( 'today' ) )
-					{
-						$serv->task( [$name , $biz] );
-						$redis->zAdd( 'bizs' , time() , $name );
-					}
+					$config['doCrawler']( $serv , $redis , $name , $biz );
 				}
 			}
 		);

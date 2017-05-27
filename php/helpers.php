@@ -89,7 +89,7 @@ function fetchList( $curl ,$name,  $biz , $wxuin , $lastMsgId , $callback )
 			}
 			$list[] = $msg;
 		}
-		$callback( $list );
+		$callback( $biz, $list );
 		randSleep();
 	}
 	return $result;

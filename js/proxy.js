@@ -1,5 +1,6 @@
 var redis = require( 'redis' );
-var redisClient = redis.createClient( {prefix : 'wechat_proxy_'} );
+var config = require( '../config.json' );
+var redisClient = redis.createClient( config );
 var setCookie = require( 'set-cookie-parser' );
 
 module.exports = {
