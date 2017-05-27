@@ -80,7 +80,7 @@ $http->on(
 		
 		$redis = new Redis();
 		$redis->pconnect( '127.0.0.1' );
-		$redis->setOption( Redis::OPT_PREFIX , 'wechat_proxy_' );
+		$redis->setOption( Redis::OPT_PREFIX , $config['redis']['prefix'] );
 		
 		$serv->tick(
 			5000 ,

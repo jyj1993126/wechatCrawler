@@ -7,7 +7,7 @@ return array_merge(
 	[
 		'BIZS' => [
 			'chuanyizhushouapp' => 'MzIyNTAwNjUyMg=='
-		],
+		] ,
 		'listHandler' => function ( $biz , $list )
 		{
 			print_r( $list );
@@ -21,7 +21,10 @@ return array_merge(
 			if( $redis->zScore( 'bizs' , $name ) < strtotime( 'today' ) )
 			{
 				$serv->task( [ $name , $biz ] );
-				$redis->zAdd( 'bizs' , time() , $name );
+				if( $redis->hlen( 'cookie' ) )
+				{
+					$redis->zAdd( 'bizs' , time() , $name );
+				}
 			}
 		} ,
 		'task_worker_num' => 5 ,

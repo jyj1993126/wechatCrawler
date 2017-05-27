@@ -1,6 +1,6 @@
 var redis = require( 'redis' );
 var config = require( '../config.json' );
-var redisClient = redis.createClient( config );
+var redisClient = redis.createClient( config.redis );
 var setCookie = require( 'set-cookie-parser' );
 
 module.exports = {
